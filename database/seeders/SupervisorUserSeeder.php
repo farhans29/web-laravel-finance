@@ -38,7 +38,7 @@ class SupervisorUserSeeder extends Seeder
         $adminRole->givePermissionTo(Permission::all());
 
         // Assign admin role to existing admin user
-        $adminUser = User::where('email', 'admin@admin.com')->first();
+        $adminUser = User::where('email', 'admin@mail.com')->first();
         if ($adminUser) {
             $adminUser->assignRole('super_admin');
         }
@@ -53,10 +53,10 @@ class SupervisorUserSeeder extends Seeder
 
         // Create supervisor user
         $supervisor = User::firstOrCreate(
-            ['email' => 'supervisor@supervisor.com'],
+            ['email' => 'supervisor@mail.com'],
             [
                 'name' => 'Supervisor',
-                'password' => Hash::make('supervisor@12345'),
+                'password' => Hash::make('supervisor12345'),
             ]
         );
 
@@ -75,10 +75,10 @@ class SupervisorUserSeeder extends Seeder
 
         // Create regular user
         $regularUser = User::firstOrCreate(
-            ['email' => 'user@user.com'],
+            ['email' => 'user@mail.com'],
             [
                 'name' => 'User',
-                'password' => Hash::make('user@12345'),
+                'password' => Hash::make('user12345'),
             ]
         );
 

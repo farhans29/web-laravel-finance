@@ -5,5 +5,5 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/admin');
 });

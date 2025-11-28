@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Notifications\Notification;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ApprovalResource extends Resource
 {
@@ -153,6 +154,17 @@ class ApprovalResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\Action::make('pdf')
+                    ->label(__('Print PDF'))
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->action(function (Invoice $record) {
+                        return response()->streamDownload(function () use ($record) {
+                            echo Pdf::loadView('pdf.approval', ['invoice' => $record])->output();
+                        }, 'invoice_' . $record->invoice_no . '_approval.pdf', [
+                            'Content-Type' => 'application/pdf',
+                        ]);
+                    }),
                 Tables\Actions\Action::make('approve')
                     ->label(__('Approve'))
                     ->icon('heroicon-o-check-circle')
@@ -190,6 +202,21 @@ class ApprovalResource extends Resource
                             ->title(__('Invoices approved successfully'))
                             ->success()
                             ->send();
+                    }),
+                Tables\Actions\BulkAction::make('pdf_bulk')
+                    ->label(__('Export PDFs'))
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->action(function ($records) {
+                        // For bulk export, we'll create a ZIP file with multiple PDFs
+                        // For now, let's download the first selected invoice as a sample
+                        $firstRecord = $records->first();
+                        return response()->streamDownload(function () use ($firstRecord) {
+                            echo Pdf::loadView('pdf.approval', ['invoice' => $firstRecord])->output();
+                        }, 'invoice_' . $firstRecord->invoice_no . '_approval.pdf', [
+                            'Content-Type' => 'application/pdf',
+                        ]);
                     }),
             ])
             ->defaultSort('created_at', 'desc');
