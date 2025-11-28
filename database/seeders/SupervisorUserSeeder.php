@@ -56,7 +56,7 @@ class SupervisorUserSeeder extends Seeder
             ['email' => 'supervisor@supervisor.com'],
             [
                 'name' => 'Supervisor',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('supervisor@12345'),
             ]
         );
 
@@ -78,7 +78,7 @@ class SupervisorUserSeeder extends Seeder
             ['email' => 'user@user.com'],
             [
                 'name' => 'User',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('user@12345'),
             ]
         );
 
