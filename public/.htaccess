@@ -5,6 +5,17 @@
 
     RewriteEngine On
 
+    # Force HTTPS - Redirect if not using HTTPS
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Set HTTPS environment variable for Laravel
+    RewriteCond %{HTTP:X-Forwarded-Proto} =https [OR]
+    RewriteCond %{HTTP:X-Forwarded-SSL} =on [OR]
+    RewriteCond %{HTTPS} =on
+    RewriteRule ^ - [E=HTTPS:on]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]

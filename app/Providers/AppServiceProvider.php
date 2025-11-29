@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Route;
 use Spatie\Permission\Models\Role;
 use App\Policies\RolePolicy;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,5 +25,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Role::class, RolePolicy::class);
+
+        // Serve Livewire assets from public directory for nginx compatibility
+        Livewire::setScriptRoute(function ($handle) {
+            return Route::get('/vendor/livewire/livewire.js', $handle);
+        });
     }
 }

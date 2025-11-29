@@ -16,6 +16,8 @@
 /public/build
 /public/hot
 /public/storage
+!/public/vendor
+!/public/vendor/livewire
 /storage/*.key
 /storage/pail
 /vendor
