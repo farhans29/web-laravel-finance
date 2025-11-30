@@ -21,10 +21,11 @@ class ViewApproval extends ViewRecord
                 ->color('gray')
                 ->action(function () {
                     $invoice = $this->getRecord();
+                    $filename = 'invoice_' . str_replace(['/', '\\'], '_', $invoice->invoice_no) . '_approval.pdf';
                     return response()->streamDownload(function () use ($invoice) {
                         $Pdf = app('dompdf.wrapper');
                         echo $Pdf->loadView('pdf.approval', ['invoice' => $invoice])->output();
-                    }, 'invoice_' . $invoice->invoice_no . '_approval.pdf', [
+                    }, $filename, [
                         'Content-Type' => 'application/pdf',
                     ]);
                 }),

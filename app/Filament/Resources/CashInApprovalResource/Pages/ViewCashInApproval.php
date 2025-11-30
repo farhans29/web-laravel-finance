@@ -20,10 +20,11 @@ class ViewCashInApproval extends ViewRecord
                 ->color('gray')
                 ->action(function () {
                     $cashIn = $this->getRecord();
+                    $filename = 'cash_in_' . str_replace(['/', '\\'], '_', $cashIn->receipt_no) . '_approval.pdf';
                     return response()->streamDownload(function () use ($cashIn) {
                         $Pdf = app('dompdf.wrapper');
                         echo $Pdf->loadView('pdf.cash-in-approval', ['cashIn' => $cashIn])->output();
-                    }, 'cash_in_' . $cashIn->receipt_no . '_approval.pdf', [
+                    }, $filename, [
                         'Content-Type' => 'application/pdf',
                     ]);
                 }),

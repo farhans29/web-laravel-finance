@@ -196,9 +196,10 @@ class CashInApprovalResource extends Resource
                     ->icon('heroicon-o-printer')
                     ->color('gray')
                     ->action(function (CashIn $record) {
+                        $filename = 'cash_in_' . str_replace(['/', '\\'], '_', $record->receipt_no) . '_approval.pdf';
                         return response()->streamDownload(function () use ($record) {
                             echo \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cash-in-approval', ['cashIn' => $record])->output();
-                        }, 'cash_in_' . $record->receipt_no . '_approval.pdf', [
+                        }, $filename, [
                             'Content-Type' => 'application/pdf',
                         ]);
                     }),

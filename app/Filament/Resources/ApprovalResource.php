@@ -179,9 +179,10 @@ class ApprovalResource extends Resource
                     ->icon('heroicon-o-printer')
                     ->color('gray')
                     ->action(function (Invoice $record) {
+                        $filename = 'invoice_' . str_replace(['/', '\\'], '_', $record->invoice_no) . '_approval.pdf';
                         return response()->streamDownload(function () use ($record) {
                             echo Pdf::loadView('pdf.approval', ['invoice' => $record])->output();
-                        }, 'invoice_' . $record->invoice_no . '_approval.pdf', [
+                        }, $filename, [
                             'Content-Type' => 'application/pdf',
                         ]);
                     }),
