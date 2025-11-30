@@ -19,6 +19,7 @@ return [
     'status' => [
         'approved' => 'Approved',
         'not_approved' => 'Not Approved',
+        'rejected' => 'Rejected',
     ],
 
     'actions' => [

@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ApprovalResource\Pages;
-use App\Filament\Resources\ApprovalResource\RelationManagers;
-use App\Models\Invoice;
+use App\Filament\Resources\CashInApprovalResource\Pages;
+use App\Filament\Resources\CashInApprovalResource\RelationManagers;
+use App\Models\CashIn;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists;
@@ -15,15 +15,14 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Notifications\Notification;
-use Barryvdh\DomPDF\Facade\Pdf;
 
-class ApprovalResource extends Resource
+class CashInApprovalResource extends Resource
 {
-    protected static ?string $model = Invoice::class;
+    protected static ?string $model = CashIn::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function canViewAny(): bool
     {
@@ -43,7 +42,7 @@ class ApprovalResource extends Resource
         }
 
         // Prevent editing if already approved or rejected
-        if (\in_array($record->invoice_status, ['approved', 'rejected'])) {
+        if (\in_array($record->cash_in_status, ['approved', 'rejected'])) {
             return false;
         }
 
@@ -52,33 +51,33 @@ class ApprovalResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('approval.navigation_label');
+        return __('cash_in_approval.navigation_label');
     }
 
     public static function getModelLabel(): string
     {
-        return __('approval.title');
+        return __('cash_in_approval.title');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('approval.title_plural');
+        return __('cash_in_approval.title_plural');
     }
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('invoice_status', 'not_approved')->count();
+        return static::getModel()::where('cash_in_status', 'not_approved')->count();
     }
 
     public static function getNavigationBadgeColor(): ?string
     {
-        $count = static::getModel()::where('invoice_status', 'not_approved')->count();
+        $count = static::getModel()::where('cash_in_status', 'not_approved')->count();
         return $count > 0 ? 'warning' : 'success';
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereIn('invoice_status', ['not_approved', 'approved', 'rejected']);
+        return parent::getEloquentQuery()->whereIn('cash_in_status', ['not_approved', 'approved', 'rejected']);
     }
 
     public static function form(Form $form): Form
@@ -87,40 +86,45 @@ class ApprovalResource extends Resource
             ->schema([
                 Forms\Components\Section::make()
                     ->schema([
-                        Forms\Components\TextInput::make('invoice_no')
-                            ->label(__('invoice.fields.invoice_no'))
+                        Forms\Components\TextInput::make('receipt_no')
+                            ->label(__('cash_in.fields.receipt_no'))
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('name')
-                            ->label(__('invoice.fields.name'))
+                        Forms\Components\TextInput::make('pks_no')
+                            ->label(__('cash_in.fields.pks_no'))
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('partner')
-                            ->label(__('invoice.fields.partner'))
+                        Forms\Components\TextInput::make('category')
+                            ->label(__('cash_in.fields.category'))
+                            ->formatStateUsing(fn (string $state): string => __('cash_in.category.' . $state))
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('activity_name')
-                            ->label(__('invoice.fields.activity_name'))
-                            ->disabled(),
-
-                        Forms\Components\TextInput::make('virtual_account_no')
-                            ->label(__('invoice.fields.virtual_account_no'))
-                            ->disabled(),
-
-                        Forms\Components\TextInput::make('bill')
-                            ->label(__('invoice.fields.bill'))
+                        Forms\Components\TextInput::make('amount')
+                            ->label(__('cash_in.fields.amount'))
                             ->disabled()
                             ->prefix('Rp'),
 
-                        Forms\Components\Select::make('invoice_status')
-                            ->label(__('invoice.fields.invoice_status'))
+                        Forms\Components\TextInput::make('date')
+                            ->label(__('cash_in.fields.date'))
+                            ->disabled(),
+
+                        Forms\Components\TextInput::make('partner_name')
+                            ->label(__('cash_in.fields.partner_name'))
+                            ->disabled(),
+
+                        Forms\Components\TextInput::make('faculty')
+                            ->label(__('cash_in.fields.faculty'))
+                            ->disabled(),
+
+                        Forms\Components\Select::make('cash_in_status')
+                            ->label(__('cash_in.fields.cash_in_status'))
                             ->options([
-                                'approved' => __('invoice.status.approved'),
-                                'not_approved' => __('invoice.status.not_approved'),
-                                'rejected' => __('invoice.status.rejected'),
+                                'approved' => __('cash_in.status.approved'),
+                                'not_approved' => __('cash_in.status.not_approved'),
+                                'rejected' => __('cash_in.status.rejected'),
                             ])
                             ->required()
-                            ->disabled(fn ($record) => $record && \in_array($record->invoice_status, ['approved', 'rejected'])),
+                            ->disabled(fn ($record) => $record && \in_array($record->cash_in_status, ['approved', 'rejected'])),
                     ])
                     ->columns(2),
             ]);
@@ -130,42 +134,55 @@ class ApprovalResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('invoice_no')
-                    ->label(__('invoice.fields.invoice_no'))
+                Tables\Columns\TextColumn::make('receipt_no')
+                    ->label(__('cash_in.fields.receipt_no'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('name')
-                    ->label(__('invoice.fields.name'))
+                Tables\Columns\TextColumn::make('pks_no')
+                    ->label(__('cash_in.fields.pks_no'))
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('partner')
-                    ->label(__('invoice.fields.partner'))
-                    ->searchable()
-                    ->sortable(),
+                Tables\Columns\BadgeColumn::make('category')
+                    ->label(__('cash_in.fields.category'))
+                    ->colors([
+                        'primary' => 'internal',
+                        'success' => 'external',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => __('cash_in.category.' . $state)),
 
-                Tables\Columns\TextColumn::make('activity_name')
-                    ->label(__('invoice.fields.activity_name'))
-                    ->searchable()
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('bill')
-                    ->label(__('invoice.fields.bill'))
+                Tables\Columns\TextColumn::make('amount')
+                    ->label(__('cash_in.fields.amount'))
                     ->money('IDR', locale: 'id')
                     ->sortable(),
 
-                Tables\Columns\BadgeColumn::make('invoice_status')
-                    ->label(__('invoice.fields.invoice_status'))
+                Tables\Columns\TextColumn::make('date')
+                    ->label(__('cash_in.fields.date'))
+                    ->date('d/m/Y')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('partner_name')
+                    ->label(__('cash_in.fields.partner_name'))
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('faculty')
+                    ->label(__('cash_in.fields.faculty'))
+                    ->searchable()
+                    ->sortable(),
+
+                Tables\Columns\BadgeColumn::make('cash_in_status')
+                    ->label(__('cash_in.fields.cash_in_status'))
                     ->colors([
                         'success' => 'approved',
                         'warning' => 'not_approved',
                         'danger' => 'rejected',
                     ])
-                    ->formatStateUsing(fn (string $state): string => __('invoice.status.' . $state)),
+                    ->formatStateUsing(fn (string $state): string => __('cash_in.status.' . $state)),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label(__('invoice.fields.created_at'))
+                    ->label(__('cash_in.fields.created_at'))
                     ->dateTime()
                     ->sortable(),
             ])
@@ -178,10 +195,10 @@ class ApprovalResource extends Resource
                     ->label(__('Print PDF'))
                     ->icon('heroicon-o-printer')
                     ->color('gray')
-                    ->action(function (Invoice $record) {
+                    ->action(function (CashIn $record) {
                         return response()->streamDownload(function () use ($record) {
-                            echo Pdf::loadView('pdf.approval', ['invoice' => $record])->output();
-                        }, 'invoice_' . $record->invoice_no . '_approval.pdf', [
+                            echo \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cash-in-approval', ['cashIn' => $record])->output();
+                        }, 'cash_in_' . $record->receipt_no . '_approval.pdf', [
                             'Content-Type' => 'application/pdf',
                         ]);
                     }),
@@ -190,15 +207,15 @@ class ApprovalResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->requiresConfirmation()
-                    ->visible(fn (Invoice $record) => !\in_array($record->invoice_status, ['approved', 'rejected']))
-                    ->action(function (Invoice $record) {
+                    ->visible(fn (CashIn $record) => !\in_array($record->cash_in_status, ['approved', 'rejected']))
+                    ->action(function (CashIn $record) {
                         $record->update([
-                            'invoice_status' => 'approved',
+                            'cash_in_status' => 'approved',
                             'approved_by' => auth()->id(),
                             'approved_at' => now(),
                         ]);
                         Notification::make()
-                            ->title(__('Invoice approved successfully'))
+                            ->title(__('Cash In approved successfully'))
                             ->success()
                             ->send();
                     }),
@@ -207,15 +224,15 @@ class ApprovalResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->visible(fn (Invoice $record) => !\in_array($record->invoice_status, ['approved', 'rejected']))
-                    ->action(function (Invoice $record) {
+                    ->visible(fn (CashIn $record) => !\in_array($record->cash_in_status, ['approved', 'rejected']))
+                    ->action(function (CashIn $record) {
                         $record->update([
-                            'invoice_status' => 'rejected',
+                            'cash_in_status' => 'rejected',
                             'approved_by' => auth()->id(),
                             'approved_at' => now(),
                         ]);
                         Notification::make()
-                            ->title(__('Invoice rejected successfully'))
+                            ->title(__('Cash In rejected successfully'))
                             ->success()
                             ->send();
                     }),
@@ -228,29 +245,14 @@ class ApprovalResource extends Resource
                     ->requiresConfirmation()
                     ->action(function ($records) {
                         $records->each->update([
-                            'invoice_status' => 'approved',
+                            'cash_in_status' => 'approved',
                             'approved_by' => auth()->id(),
                             'approved_at' => now(),
                         ]);
                         Notification::make()
-                            ->title(__('Invoices approved successfully'))
+                            ->title(__('Cash Ins approved successfully'))
                             ->success()
                             ->send();
-                    }),
-                Tables\Actions\BulkAction::make('pdf_bulk')
-                    ->label(__('Export PDFs'))
-                    ->icon('heroicon-o-printer')
-                    ->color('gray')
-                    ->requiresConfirmation()
-                    ->action(function ($records) {
-                        // For bulk export, we'll create a ZIP file with multiple PDFs
-                        // For now, let's download the first selected invoice as a sample
-                        $firstRecord = $records->first();
-                        return response()->streamDownload(function () use ($firstRecord) {
-                            echo Pdf::loadView('pdf.approval', ['invoice' => $firstRecord])->output();
-                        }, 'invoice_' . $firstRecord->invoice_no . '_approval.pdf', [
-                            'Content-Type' => 'application/pdf',
-                        ]);
                     }),
             ])
             ->defaultSort('created_at', 'desc');
@@ -260,30 +262,39 @@ class ApprovalResource extends Resource
     {
         return $infolist
             ->schema([
-                Infolists\Components\Section::make('Invoice Information')
+                Infolists\Components\Section::make('Cash In Information')
                     ->schema([
-                        Infolists\Components\TextEntry::make('invoice_no')
-                            ->label(__('invoice.fields.invoice_no')),
-                        Infolists\Components\TextEntry::make('name')
-                            ->label(__('invoice.fields.name')),
-                        Infolists\Components\TextEntry::make('partner')
-                            ->label(__('invoice.fields.partner')),
-                        Infolists\Components\TextEntry::make('activity_name')
-                            ->label(__('invoice.fields.activity_name')),
-                        Infolists\Components\TextEntry::make('virtual_account_no')
-                            ->label(__('invoice.fields.virtual_account_no')),
-                        Infolists\Components\TextEntry::make('bill')
-                            ->label(__('invoice.fields.bill'))
+                        Infolists\Components\TextEntry::make('receipt_no')
+                            ->label(__('cash_in.fields.receipt_no')),
+                        Infolists\Components\TextEntry::make('pks_no')
+                            ->label(__('cash_in.fields.pks_no')),
+                        Infolists\Components\TextEntry::make('category')
+                            ->label(__('cash_in.fields.category'))
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'internal' => 'primary',
+                                'external' => 'success',
+                            })
+                            ->formatStateUsing(fn (string $state): string => __("cash_in.category.$state")),
+                        Infolists\Components\TextEntry::make('amount')
+                            ->label(__('cash_in.fields.amount'))
                             ->money('IDR', locale: 'id'),
-                        Infolists\Components\TextEntry::make('invoice_status')
-                            ->label(__('invoice.fields.invoice_status'))
+                        Infolists\Components\TextEntry::make('date')
+                            ->label(__('cash_in.fields.date'))
+                            ->date('d/m/Y'),
+                        Infolists\Components\TextEntry::make('partner_name')
+                            ->label(__('cash_in.fields.partner_name')),
+                        Infolists\Components\TextEntry::make('faculty')
+                            ->label(__('cash_in.fields.faculty')),
+                        Infolists\Components\TextEntry::make('cash_in_status')
+                            ->label(__('cash_in.fields.cash_in_status'))
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
                                 'approved' => 'success',
                                 'not_approved' => 'warning',
                                 'rejected' => 'danger',
                             })
-                            ->formatStateUsing(fn (string $state): string => __("invoice.status.$state")),
+                            ->formatStateUsing(fn (string $state): string => __("cash_in.status.$state")),
                     ])
                     ->columns(2),
                 Infolists\Components\Section::make('Tracking Information')
@@ -324,8 +335,8 @@ class ApprovalResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListApprovals::route('/'),
-            'view' => Pages\ViewApproval::route('/{record}'),
+            'index' => Pages\ListCashInApprovals::route('/'),
+            'view' => Pages\ViewCashInApproval::route('/{record}'),
         ];
     }
 }

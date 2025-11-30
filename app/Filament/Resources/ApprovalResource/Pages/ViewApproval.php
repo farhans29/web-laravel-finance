@@ -13,7 +13,8 @@ class ViewApproval extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\EditAction::make(),
+            Actions\EditAction::make()
+                ->visible(fn () => !\in_array($this->getRecord()->invoice_status, ['approved', 'rejected'])),
             Actions\Action::make('download_pdf')
                 ->label(__('Download PDF'))
                 ->icon('heroicon-o-printer')

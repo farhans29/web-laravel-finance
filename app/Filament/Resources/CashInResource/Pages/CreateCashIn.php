@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\InvoiceResource\Pages;
+namespace App\Filament\Resources\CashInResource\Pages;
 
-use App\Filament\Resources\InvoiceResource;
+use App\Filament\Resources\CashInResource;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateInvoice extends CreateRecord
+class CreateCashIn extends CreateRecord
 {
-    protected static string $resource = InvoiceResource::class;
+    protected static string $resource = CashInResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Invoice Approval</title>
+    <title>Cash In Approval</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,18 +15,18 @@
         .header {
             text-align: center;
             margin-bottom: 30px;
-            border-bottom: 2px solid #007bff;
+            border-bottom: 2px solid #28a745;
             padding-bottom: 20px;
         }
         .header h1 {
-            color: #007bff;
+            color: #28a745;
             margin: 0;
         }
         .info-section {
             margin-bottom: 30px;
         }
         .info-section h2 {
-            color: #007bff;
+            color: #28a745;
             border-bottom: 1px solid #ddd;
             padding-bottom: 5px;
         }
@@ -58,6 +58,25 @@
         .status-not-approved {
             background-color: #fff3cd;
             color: #856404;
+        }
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .category-internal {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+        .category-external {
+            background-color: #d1e7dd;
+            color: #0f5132;
         }
         .amount {
             font-size: 18px;
@@ -96,48 +115,51 @@
 </head>
 <body>
     <div class="header">
-        <h1>INVOICE APPROVAL DOCUMENT</h1>
+        <h1>CASH IN APPROVAL DOCUMENT</h1>
         <p><strong>Generated:</strong> {{ now()->format('d F Y H:i') }}</p>
     </div>
 
     <div class="info-section">
-        <h2>Invoice Information</h2>
+        <h2>Cash In Information</h2>
         <div class="info-grid">
             <div>
                 <div class="info-item">
-                    <strong>Invoice Number:</strong> {{ $invoice->invoice_no }}
+                    <strong>Receipt Number:</strong> {{ $cashIn->receipt_no }}
                 </div>
                 <div class="info-item">
-                    <strong>Name:</strong> {{ $invoice->name }}
+                    <strong>PKS Number:</strong> {{ $cashIn->pks_no }}
                 </div>
                 <div class="info-item">
-                    <strong>Partner:</strong> {{ $invoice->partner }}
+                    <strong>Partner Name:</strong> {{ $cashIn->partner_name }}
                 </div>
                 <div class="info-item">
-                    <strong>Activity:</strong> {{ $invoice->activity_name }}
+                    <strong>Faculty:</strong> {{ $cashIn->faculty }}
                 </div>
             </div>
             <div>
                 <div class="info-item">
-                    <strong>Status:</strong>
-                    <span class="status-badge status-{{ $invoice->invoice_status }}">
-                        {{ $invoice->invoice_status == 'approved' ? 'APPROVED' : 'NOT APPROVED' }}
+                    <strong>Category:</strong>
+                    <span class="category-badge category-{{ $cashIn->category }}">
+                        {{ strtoupper($cashIn->category) }}
                     </span>
                 </div>
                 <div class="info-item">
-                    <strong>Virtual Account:</strong> {{ $invoice->virtual_account_no }}
+                    <strong>Status:</strong>
+                    <span class="status-badge status-{{ $cashIn->cash_in_status }}">
+                        {{ $cashIn->cash_in_status == 'approved' ? 'APPROVED' : ($cashIn->cash_in_status == 'rejected' ? 'REJECTED' : 'NOT APPROVED') }}
+                    </span>
                 </div>
                 <div class="info-item">
-                    <strong>Created:</strong> {{ $invoice->created_at->format('d F Y H:i') }}
+                    <strong>Date:</strong> {{ \Carbon\Carbon::parse($cashIn->date)->format('d F Y') }}
                 </div>
                 <div class="info-item">
-                    <strong>Updated:</strong> {{ $invoice->updated_at->format('d F Y H:i') }}
+                    <strong>Created:</strong> {{ $cashIn->created_at->format('d F Y H:i') }}
                 </div>
             </div>
         </div>
         <div class="info-item">
             <strong>Total Amount:</strong>
-            <span class="amount">Rp {{ number_format($invoice->bill, 2) }}</span>
+            <span class="amount">Rp {{ number_format($cashIn->amount, 2) }}</span>
         </div>
     </div>
 
@@ -146,45 +168,31 @@
         <div class="info-grid">
             <div>
                 <div class="info-item">
-                    <strong>Created By:</strong> {{ $invoice->creator?->name ?? 'N/A' }}
+                    <strong>Created By:</strong> {{ $cashIn->creator?->name ?? 'N/A' }}
                 </div>
                 <div class="info-item">
-                    <strong>Created At:</strong> {{ $invoice->created_at->timezone('Asia/Jakarta')->format('d F Y H:i') }}
+                    <strong>Created At:</strong> {{ $cashIn->created_at->timezone('Asia/Jakarta')->format('d F Y H:i') }}
                 </div>
                 <div class="info-item">
-                    <strong>Updated By:</strong> {{ $invoice->updater?->name ?? 'N/A' }}
+                    <strong>Updated By:</strong> {{ $cashIn->updater?->name ?? 'N/A' }}
                 </div>
             </div>
             <div>
                 <div class="info-item">
-                    <strong>Updated At:</strong> {{ $invoice->updated_at->timezone('Asia/Jakarta')->format('d F Y H:i') }}
+                    <strong>Updated At:</strong> {{ $cashIn->updated_at->timezone('Asia/Jakarta')->format('d F Y H:i') }}
                 </div>
                 <div class="info-item">
-                    <strong>Approved By:</strong> {{ $invoice->approver?->name ?? 'N/A' }}
+                    <strong>Approved By:</strong> {{ $cashIn->approver?->name ?? 'N/A' }}
                 </div>
                 <div class="info-item">
-                    <strong>Approved At:</strong> {{ $invoice->approved_at?->timezone('Asia/Jakarta')->format('d F Y H:i') ?? 'N/A' }}
+                    <strong>Approved At:</strong> {{ $cashIn->approved_at?->timezone('Asia/Jakarta')->format('d F Y H:i') ?? 'N/A' }}
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- <div class="signature-section">
-        <div class="signature-box">
-            <h3>Supervisor</h3>
-            <div class="signature-line"></div>
-            <p>{{ auth()->user()->name }}</p>
-            <p>{{ now()->format('d F Y') }}</p>
-        </div>
-        <div class="signature-box">
-            <h3>Approval Status</h3>
-            <p><strong>{{ $invoice->invoice_status == 'approved' ? '✓ APPROVED' : '⏳ PENDING' }}</strong></p>
-            <p>{{ $invoice->invoice_status == 'approved' ? 'This invoice is approved for payment processing.' : 'This invoice is awaiting approval.' }}</p>
-        </div>
-    </div> --}}
-
     <div class="footer">
-        <p>This document was generated automatically from the Invoice Approval System.</p>
+        <p>This document was generated automatically from the Cash In Approval System.</p>
         <p>For any questions regarding this approval, please contact the system administrator.</p>
     </div>
 </body>

@@ -5,16 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Invoice extends Model
+class CashIn extends Model
 {
     protected $fillable = [
-        'invoice_no',
-        'name',
-        'partner',
-        'activity_name',
-        'virtual_account_no',
-        'bill',
-        'invoice_status',
+        'receipt_no',
+        'pks_no',
+        'category',
+        'amount',
+        'date',
+        'partner_name',
+        'faculty',
+        'cash_in_status',
         'created_by',
         'updated_by',
         'approved_by',
@@ -22,7 +23,8 @@ class Invoice extends Model
     ];
 
     protected $casts = [
-        'bill' => 'decimal:2',
+        'amount' => 'decimal:2',
+        'date' => 'date',
         'approved_at' => 'datetime',
     ];
 

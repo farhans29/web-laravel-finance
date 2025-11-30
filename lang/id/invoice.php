@@ -19,6 +19,7 @@ return [
     'status' => [
         'approved' => 'Disetujui',
         'not_approved' => 'Belum Disetujui',
+        'rejected' => 'Ditolak',
     ],
 
     'actions' => [
